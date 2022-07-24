@@ -34,3 +34,4 @@ jobs:
       - name: mypy
         run: invoke mypy
       - name: Run tests
+        run: invoke test
