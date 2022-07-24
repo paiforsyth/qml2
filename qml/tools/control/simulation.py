@@ -18,10 +18,7 @@ class Controller(ABC, Generic[S, C]):
 
 
 def simulate(
-    initial_state: S,
-    state_updater: StateUpdater[S, C],
-    controller: Controller[S, C],
-    num_steps: int,
+    initial_state: S, state_updater: StateUpdater[S, C], controller: Controller[S, C], num_steps: int
 ) -> tuple[Sequence[S], Sequence[C]]:
     states = [initial_state]
     controls = []
