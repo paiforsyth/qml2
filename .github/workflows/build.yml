@@ -1,0 +1,35 @@
+name: Build
+
+on:
+   push:
+#   pull_request:
+#     types: [opened, reopened]
+
+jobs:
+  tests:
+    name: ${{ matrix.session }} ${{ matrix.python }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { python: "3.10", os: "ubuntu-latest"}
+    env:
+      FORCE_COLOR: "1"
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3.0.2
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v4.1.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          pip --version
+      - name: Check formatting
+        run: invoke check
+      - name: mypy
+        run: invoke mypy
+      - name: Run tests
