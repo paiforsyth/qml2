@@ -1,0 +1,10 @@
+[tool.black]
+line-length = 120
+skip-magic-trailing-comma = true
+
+[tool.isort]
+profile = "black"
+line_length = 120
+
+[tool.pytest.ini_options]
+addopts = "--durations=20 --hypothesis-show-statistics"
