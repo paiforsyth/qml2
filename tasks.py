@@ -2,13 +2,15 @@ from invoke import task
 
 SRC_DIR = "qml"
 TEST_DIR = "qml"
+
+
 @task
 def mypy(c):
     c.run(f"mypy {SRC_DIR}")
 
 @task
 def test(c):
-    c.run(f"pytest {SRC_DIR}", pty=True)
+    c.run(f"pytest --failed-first {SRC_DIR}", pty=True)
 
 @task
 def black(c):
