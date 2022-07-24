@@ -14,7 +14,7 @@ from qml.tools.monte_carlo import brownian_motion
     mean_1=st.floats(min_value=-10, max_value=-10),
     mean_2=st.floats(min_value=-10, max_value=-10),
     corr=st.floats(min_value=-0.9, max_value=0.9),
-    num_steps=st.integers(min_value=1, max_value=10),
+    num_steps=st.integers(min_value=2, max_value=10),
     final_time=st.floats(min_value=0.1, max_value=1.0),
     var_1=st.floats(min_value=0.1, max_value=1.0),
 )
@@ -51,12 +51,12 @@ def test_mean_invariant_to_steps(
         )
     )
     paths = 10000
+    time_steps = jnp.linspace(0, final_time, num=num_steps)
     brownian_output = brownian_motion.vector_arithmetic_brownian_motion(
         num_paths=paths,
         mu=jnp.array([mean_1, mean_2]),
         sigma=jnp.array([math.sqrt(var_1), 1.0]),
-        final_time=final_time * jnp.ones((paths,)),
-        steps=num_steps,
+        time_steps=time_steps,
         key=key,
         C=C,
     )  # paths by steps by n
