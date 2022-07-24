@@ -3,3 +3,9 @@ numpy==1.22.3
 pandas==1.4.3
 pytest==7.1.2
 hypothesis==6.52.4
+invoke==1.7.1
+autoflake==1.4
+black==22.6.0
+isort==5.10.1
+mypy==0.971
+jax[cpu]==0.3.15
