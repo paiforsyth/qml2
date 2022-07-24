@@ -61,7 +61,7 @@ def vector_geometric_brownian_motion(
     C: array of dimension (n,n) such that CC^T is the correlation between assets
     final_time: shape (num_path,) indicating amount of time to simulate
     """
-    arithmetic_drift = mu - (sigma ** 2) / 2
+    arithmetic_drift = mu - (sigma**2) / 2
     n = mu.size
     abm = vector_arithmetic_brownian_motion(
         num_paths=num_paths,
