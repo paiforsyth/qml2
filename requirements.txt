@@ -1,0 +1,5 @@
+plotly==5.9.0
+numpy==1.22.3
+pandas==1.4.3
+pytest==7.1.2
+hypothesis==6.52.4
