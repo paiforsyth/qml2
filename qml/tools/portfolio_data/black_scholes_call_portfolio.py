@@ -38,21 +38,11 @@ def black_scholes_option_portfolio(
     num_time_steps = time_steps.shape[0]
     num_options = maturities.shape[0]
     asset_prices = vector_geometric_brownian_motion(
-        num_paths=num_paths,
-        start_value=initial_price,
-        mu=mu,
-        C=C,
-        time_steps=time_steps,
-        key=key,
-        sigma=sigma,
+        num_paths=num_paths, start_value=initial_price, mu=mu, C=C, time_steps=time_steps, key=key, sigma=sigma
     )  # Shape (num_paths, num_time_steps, num_assets)
-    option_underlying_price = asset_prices[
-        ..., underlying
-    ]  # shape num_paths, num_time_steps, num_options
+    option_underlying_price = asset_prices[..., underlying]  # shape num_paths, num_time_steps, num_options
     option_vol = sigma[underlying]
-    time_to_maturity = maturities - time_steps.reshape(
-        num_time_steps, num_options
-    )  # shape num_time steps, num_options
+    time_to_maturity = maturities - time_steps.reshape(num_time_steps, num_options)  # shape num_time steps, num_options
     return price_call(
         underlying_price=option_underlying_price,
         strike=strike,
