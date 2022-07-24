@@ -38,6 +38,8 @@ def vector_arithmetic_brownian_motion(
     cum_shocks = jnp.cumsum(shocks, axis=1)
     return drift_array + cum_shocks
 
+vector_arithmetic_brownian_motion = jax.jit(fun=vector_arithmetic_brownian_motion, static_argnums=(0,))
+
 
 def vector_geometric_brownian_motion(
     num_paths: int,

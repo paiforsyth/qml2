@@ -1,2 +1,5 @@
-def black_scholes_option_portfolio():
+
+
+def black_scholes_option_portfolio(
+):
     pass
