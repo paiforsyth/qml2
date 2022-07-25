@@ -12,3 +12,14 @@ conda env update -f env.yaml
 ```bash
 conda  activate qm
 ```
+
+
+## run tests
+```bash
+invoke test
+```
+
+## run tests using testmon, only running tests affected by changes
+```bash
+invoke testm
+```
