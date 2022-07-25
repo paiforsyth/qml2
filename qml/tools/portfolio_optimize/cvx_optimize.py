@@ -43,15 +43,15 @@ def cvar_minimize_non_smooth(
     num_simulations = instrument_payoff.shape[1]
 
     # Define constants. use names from paper
-    beta = np.array(confidence_level)
-    m = np.array(num_simulations)
-    V0 = np.array(instrument_price)
-    V_delta = np.array(instrument_payoff - instrument_price.reshape(num_instruments, 1))
+    beta = np.asarray(confidence_level)
+    m = np.asarray(num_simulations)
+    V0 = np.asarray(instrument_price)
+    V_delta = np.asarray(instrument_payoff - instrument_price.reshape(num_instruments, 1))
     V_delta_bar = np.mean(V_delta, axis=-1)
-    b = np.array(budget)
-    r = np.array(required_return)
-    l = np.array(minimum_holding) if minimum_holding is not None else None
-    u = np.array(maximum_holding) if maximum_holding is not None else None
+    b = np.asarray(budget)
+    r = np.asarray(required_return)
+    l = np.asarray(minimum_holding) if minimum_holding is not None else None
+    u = np.asarray(maximum_holding) if maximum_holding is not None else None
 
     # define variables
     x = cp.Variable(shape=num_instruments)
