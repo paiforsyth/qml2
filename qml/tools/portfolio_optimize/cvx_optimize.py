@@ -35,6 +35,9 @@ def cvar_minimize_non_smooth(
         a cvxpy problem representing the non-smooth cvar minimization
     Gotchas:
         - matrices containing infinite values can cause CVXPY's underlying solvers to fail with cryptic errors
+    References:
+        Alexander, Siddharth, Thomas F. Coleman, and Yuying Li.
+        "Minimizing CVaR and VaR for a portfolio of derivatives." Journal of Banking & Finance 30.2 (2006): 583-605.
     """
     num_instruments = instrument_price.shape[0]
     num_simulations = instrument_payoff.shape[1]
