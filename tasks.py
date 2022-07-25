@@ -15,6 +15,12 @@ def test(c, pdb=False):
         args+= " --pdb"
     c.run(f"pytest --failed-first {args} {SRC_DIR}", pty=True)
 
+@task
+def testm(c, pdb=False):
+    args = ""
+    if pdb:
+        args+= " --pdb"
+    c.run(f"pytest --testmon {args} {SRC_DIR}", pty=True)
 
 
 @task
