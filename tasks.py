@@ -9,8 +9,13 @@ def mypy(c):
     c.run(f"mypy {SRC_DIR}")
 
 @task
-def test(c):
-    c.run(f"pytest --failed-first {SRC_DIR}", pty=True)
+def test(c, pdb=False):
+    args = ""
+    if pdb:
+        args+= " --pdb"
+    c.run(f"pytest --failed-first {args} {SRC_DIR}", pty=True)
+
+
 
 @task
 def black(c):
