@@ -1,16 +1,10 @@
-import xarray as xr
 import jax.numpy as jnp
 import numpy as np
 import numpy.testing
-import scipy
-import scipy.stats
+import xarray as xr
 from cvxpy import OPTIMAL
 
-from qml.tools.portfolio_optimize.cvx_optimize import (
-    TRAINING_RETURN,
-    cvar_minimize_non_smooth_problem,
-    efficient_frontier_non_smooth,
-)
+from qml.tools.portfolio_optimize.cvx_optimize import TRAINING_RETURN, cvar_minimize_non_smooth_problem
 
 
 def test_superior_asset():
@@ -37,5 +31,5 @@ def test_frontier(example_required_return: np.ndarray, example_efficient_frontie
     """
     eps = 1e-6
     frontier = example_efficient_frontier
-    required_return =example_required_return
+    required_return = example_required_return
     assert np.all(frontier[TRAINING_RETURN].values >= (required_return - eps))

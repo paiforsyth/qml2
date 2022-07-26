@@ -1,8 +1,8 @@
 import numpy as np
-import scipy
-import xarray as xr
-import scipy.stats
 import pytest
+import scipy
+import scipy.stats
+import xarray as xr
 
 from qml.tools.portfolio_optimize.cvx_optimize import efficient_frontier_non_smooth
 from qml.tools.portfolo_plot.cvar_min_plot import add_risk_return_percentage_to_ds
@@ -10,11 +10,11 @@ from qml.tools.portfolo_plot.cvar_min_plot import add_risk_return_percentage_to_
 
 @pytest.fixture(scope="package")
 def example_required_return() -> np.ndarray:
-    return  np.array([1.25, 1.5, 1.75])
+    return np.array([1.25, 1.5, 1.75])
 
 
 @pytest.fixture(scope="package")
-def example_efficient_frontier(example_required_return: np.ndarray)-> xr.Dataset:
+def example_efficient_frontier(example_required_return: np.ndarray) -> xr.Dataset:
     samples = 100
     normal = scipy.stats.multivariate_normal(
         cov=np.array([[1.0, 0.0], [0.0, 10.0]]), mean=np.array([1.0, 2.0]), seed=42
@@ -27,4 +27,3 @@ def example_efficient_frontier(example_required_return: np.ndarray)-> xr.Dataset
     )
     frontier = add_risk_return_percentage_to_ds(frontier)
     return frontier
-

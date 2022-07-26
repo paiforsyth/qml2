@@ -160,5 +160,5 @@ def efficient_frontier_non_smooth(
         _SolveHelper(problem=cprob, problem_data=data, return_parameter=return_parameter), required_returns
     )
     ds = xr.concat(solutions, dim=FRONTIER_DIMENSION)
-    ds[START_VALUE]= xr.DataArray(instrument_price, dims=INSTRUMENT_DIMENSION)
+    ds[START_VALUE] = xr.DataArray(instrument_price, dims=INSTRUMENT_DIMENSION)
     return ds
