@@ -6,6 +6,9 @@ import cvxpy as cp
 import numpy as np
 import xarray as xr
 from cvxpy import OPTIMAL
+from numpy.typing import ArrayLike
+
+from qml.tools.monte_carlo.brownian_motion import START_VALUE
 
 
 @attr.s(frozen=True, auto_attribs=True)
@@ -18,23 +21,24 @@ class CVaRProblem:
 @attr.s(frozen=True, auto_attribs=True)
 class CVaRAuxData:
     V_delta_bar: np.ndarray
+    price: np.ndarray
 
 
 def cvar_minimize_non_smooth_problem(
-    confidence_level: np.ndarray,
-    instrument_price: np.ndarray,
-    instrument_payoff: np.ndarray,
-    required_return: np.ndarray | cp.Parameter,
-    minimum_holding: Optional[np.ndarray] = None,
-    maximum_holding: Optional[np.ndarray] = None,
-    budget: np.ndarray = np.array(1),
+    confidence_level: ArrayLike,
+    instrument_price: ArrayLike,
+    instrument_payoff: ArrayLike,
+    required_return: ArrayLike | cp.Parameter,
+    minimum_holding: Optional[ArrayLike] = None,
+    maximum_holding: Optional[ArrayLike] = None,
+    budget: ArrayLike = np.array(1),
 ) -> Tuple[CVaRProblem, CVaRAuxData]:
     """
 
     Args:
         confidence_level: Scalar. Confidence level for CVAR minimization.  Common choices are 0.95 and 0.99
         instrument_price: (num_instruments,) vector giving purchase price of every instrument
-        instrument_payoff: (num_instruments, num_simulations) array giving payoff of each instrument in each simulation.
+        instrument_payoff: (num_simulations, num_instruments) array giving payoff of each instrument in each simulation.
         minimum_holding:  (num_instruments,) array giving minimum holding of each instrument
         maximum_holding:  (num_instruments,) array giving maximum holding of each instrument
         required_return: Scalar.  Required return for the portfolio
@@ -47,14 +51,15 @@ def cvar_minimize_non_smooth_problem(
         Alexander, Siddharth, Thomas F. Coleman, and Yuying Li.
         "Minimizing CVaR and VaR for a portfolio of derivatives." Journal of Banking & Finance 30.2 (2006): 583-605.
     """
-    num_instruments = instrument_price.shape[0]
-    num_simulations = instrument_payoff.shape[1]
+    instrument_payoff = np.asarray(instrument_payoff)
+    instrument_payoff = instrument_payoff.transpose()
+    num_instruments, num_simulations = instrument_payoff.shape
 
     # Define constants. use names from paper
     beta = np.asarray(confidence_level)
     m = np.asarray(num_simulations)
     V0 = np.asarray(instrument_price)
-    V_delta = np.asarray(instrument_payoff - instrument_price.reshape(num_instruments, 1))
+    V_delta = np.asarray(instrument_payoff - V0.reshape(num_instruments, 1))
     V_delta_bar = np.mean(V_delta, axis=-1)
     b = np.asarray(budget)
     r = required_return if isinstance(required_return, cp.Parameter) else np.asarray(required_return)
@@ -71,15 +76,16 @@ def cvar_minimize_non_smooth_problem(
     max_constraint = [x <= u] if u is not None else []
     constraints = budget_constraint + return_constraint + min_constraint + max_constraint
     prob = cp.Problem(obj, constraints)
-    return CVaRProblem(prob, x=x, alpha=alpha), CVaRAuxData(V_delta_bar=V_delta_bar)
+    return CVaRProblem(prob, x=x, alpha=alpha), CVaRAuxData(V_delta_bar=V_delta_bar, price=V0)
 
 
-TRAINING_RETURN = "training_return"
+TRAINING_RETURN = "training_mean_return"
 TRAINING_CVAR = "training_cvar"
 HOLDINGS = "holdings"
+COST = "cost"
 
-INSTRUMENT_DIMENSION = "instrument_dimension"
-BATCH_DIMENSION = "batch dimension"
+INSTRUMENT_DIMENSION = "instrument"
+FRONTIER_DIMENSION = "frontier_dimension"
 
 
 def cvar_minimize_non_smooth_solve(cprob: CVaRProblem, cdata: CVaRAuxData) -> xr.Dataset:
@@ -94,6 +100,7 @@ def cvar_minimize_non_smooth_solve(cprob: CVaRProblem, cdata: CVaRAuxData) -> xr
             TRAINING_RETURN: np.array(ret),
             TRAINING_CVAR: np.array(cvar),
             HOLDINGS: xr.DataArray(holding, dims=INSTRUMENT_DIMENSION),
+            COST: xr.DataArray(sum(holding * cdata.price)),
         }
     )
 
@@ -110,14 +117,14 @@ class _SolveHelper:
 
 
 def efficient_frontier_non_smooth(
-    confidence_level: np.ndarray,
-    instrument_price: np.ndarray,
-    instrument_payoff: np.ndarray,
-    required_returns: np.ndarray,
+    confidence_level: ArrayLike,
+    instrument_price: ArrayLike,
+    instrument_payoff: ArrayLike,
+    required_returns: ArrayLike,
     processess: Optional[int] = None,
-    minimum_holding: Optional[np.ndarray] = None,
-    maximum_holding: Optional[np.ndarray] = None,
-    budget: np.ndarray = np.array(1),
+    minimum_holding: Optional[ArrayLike] = None,
+    maximum_holding: Optional[ArrayLike] = None,
+    budget: ArrayLike = np.array(1),
 ) -> xr.Dataset:
 
     """
@@ -147,8 +154,11 @@ def efficient_frontier_non_smooth(
         maximum_holding=maximum_holding,
         budget=budget,
     )
+    required_returns = np.asarray(required_returns)
     pool = multiprocessing.Pool(processes=processess)
     solutions = pool.map(
         _SolveHelper(problem=cprob, problem_data=data, return_parameter=return_parameter), required_returns
     )
-    return xr.concat(solutions, dim=BATCH_DIMENSION)
+    ds = xr.concat(solutions, dim=FRONTIER_DIMENSION)
+    ds[START_VALUE] = xr.DataArray(instrument_price, dims=INSTRUMENT_DIMENSION)
+    return ds
