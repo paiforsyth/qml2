@@ -19,6 +19,7 @@ class CVaRProblem:
 @attr.s(frozen=True, auto_attribs=True)
 class CVaRAuxData:
     V_delta_bar: np.ndarray
+    price: np.ndarray
 
 
 def cvar_minimize_non_smooth_problem(
@@ -35,7 +36,7 @@ def cvar_minimize_non_smooth_problem(
     Args:
         confidence_level: Scalar. Confidence level for CVAR minimization.  Common choices are 0.95 and 0.99
         instrument_price: (num_instruments,) vector giving purchase price of every instrument
-        instrument_payoff: (num_instruments, num_simulations) array giving payoff of each instrument in each simulation.
+        instrument_payoff: (num_simulations, num_instruments) array giving payoff of each instrument in each simulation.
         minimum_holding:  (num_instruments,) array giving minimum holding of each instrument
         maximum_holding:  (num_instruments,) array giving maximum holding of each instrument
         required_return: Scalar.  Required return for the portfolio
@@ -49,6 +50,7 @@ def cvar_minimize_non_smooth_problem(
         "Minimizing CVaR and VaR for a portfolio of derivatives." Journal of Banking & Finance 30.2 (2006): 583-605.
     """
     instrument_payoff = np.asarray(instrument_payoff)
+    instrument_payoff = instrument_payoff.transpose()
     num_instruments, num_simulations = instrument_payoff.shape
 
     # Define constants. use names from paper
@@ -72,15 +74,16 @@ def cvar_minimize_non_smooth_problem(
     max_constraint = [x <= u] if u is not None else []
     constraints = budget_constraint + return_constraint + min_constraint + max_constraint
     prob = cp.Problem(obj, constraints)
-    return CVaRProblem(prob, x=x, alpha=alpha), CVaRAuxData(V_delta_bar=V_delta_bar)
+    return CVaRProblem(prob, x=x, alpha=alpha), CVaRAuxData(V_delta_bar=V_delta_bar, price=V0)
 
 
 TRAINING_RETURN = "training_return"
 TRAINING_CVAR = "training_cvar"
 HOLDINGS = "holdings"
+COST = "cost"
 
 INSTRUMENT_DIMENSION = "instrument_dimension"
-BATCH_DIMENSION = "batch dimension"
+FRONTIER_DIMENSION = "frontier_dimension"
 
 
 def cvar_minimize_non_smooth_solve(cprob: CVaRProblem, cdata: CVaRAuxData) -> xr.Dataset:
@@ -95,6 +98,7 @@ def cvar_minimize_non_smooth_solve(cprob: CVaRProblem, cdata: CVaRAuxData) -> xr
             TRAINING_RETURN: np.array(ret),
             TRAINING_CVAR: np.array(cvar),
             HOLDINGS: xr.DataArray(holding, dims=INSTRUMENT_DIMENSION),
+            COST: xr.DataArray(sum(holding * cdata.price)),
         }
     )
 
@@ -153,4 +157,4 @@ def efficient_frontier_non_smooth(
     solutions = pool.map(
         _SolveHelper(problem=cprob, problem_data=data, return_parameter=return_parameter), required_returns
     )
-    return xr.concat(solutions, dim=BATCH_DIMENSION)
+    return xr.concat(solutions, dim=FRONTIER_DIMENSION)

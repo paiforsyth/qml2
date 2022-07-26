@@ -20,7 +20,7 @@ def test_superior_asset():
     cprob, _ = cvar_minimize_non_smooth_problem(
         confidence_level=jnp.array(0.95),
         instrument_price=jnp.array([1.0, 1.0]),
-        instrument_payoff=jnp.array([[2.0, 2.0, 2.0], [0, -1.0, -3.0]]),
+        instrument_payoff=jnp.array([[2.0, 2.0, 2.0], [0, -1.0, -3.0]]).transpose(),
         required_return=jnp.array([1.0]),
         minimum_holding=np.array([0.0, 0.0]),
     )
@@ -43,7 +43,7 @@ def test_frontier():
     frontier = efficient_frontier_non_smooth(
         confidence_level=np.array(0.95),
         instrument_price=np.array([1.0, 1.0]),
-        instrument_payoff=normal.rvs(size=samples).transpose(),
+        instrument_payoff=normal.rvs(size=samples),
         required_returns=required_return,
     )
     assert np.all(frontier[TRAINING_RETURN].values >= (required_return - eps))

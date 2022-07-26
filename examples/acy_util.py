@@ -1,10 +1,20 @@
+from typing import Tuple
+
 import numpy as np
 import numpy.testing
 import xarray as xr
 from numpy.typing import ArrayLike
 
-from qml.tools.jax_util.types import Array
-from qml.tools.monte_carlo.brownian_motion import TIME_STEP_DIMENSION, xr_vector_geometric_brownian_motion
+from qml.tools.monte_carlo.brownian_motion import (
+    ASSET_DIMENSION,
+    C_MAT,
+    MU,
+    SIGMA,
+    START_VALUE,
+    TIME_STEP_DIMENSION,
+    TIME_STEPS,
+)
+from qml.tools.monte_carlo.brownian_motion_util import add_risk_free_rate_to_params
 
 """
 Utility functions for the experiments in the paper
@@ -25,23 +35,28 @@ ACY_cov = np.array(
     ]
 )
 np.testing.assert_allclose(ACY_cov, ACY_cov.transpose())
-ACY_std = np.sqrt(np.diag(ACY_cov))
-ACY_correlation = ACY_cov / ACY_std.reshape(1, 4) / ACY_std.reshape(4, 1)
-ACY_C = np.linalg.cholesky(ACY_correlation)
 
 
-def generate_asset_paths(n_paths: int, time_steps: ArrayLike, key: Array) -> xr.DataArray:
-    return xr_vector_geometric_brownian_motion(
-        num_paths=n_paths,
-        start_value=ACY_initial_price,
-        mu=ACY_mu,
-        sigma=ACY_std,
-        C=ACY_C,
-        time_steps=time_steps,
-        key=key,
+def compute_std_correlation_C_from_cov(cov: ArrayLike) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    cov = np.asarray(cov)
+    num_assets = len(cov)
+    std = np.sqrt(np.diag(cov))
+    correlation = cov / std.reshape(1, num_assets) / std.reshape(num_assets, 1)
+    C = np.linalg.cholesky(correlation)
+    corr_diag = np.diag(correlation)
+    assert np.allclose(corr_diag, np.ones_like(corr_diag))
+    return std, correlation, C
+
+
+def acy_params_with_risk_free_rate(risk_free_rate: float = 0.01, terminal_time: float = 62.5 / 250) -> xr.Dataset:
+    std, correlation, C = compute_std_correlation_C_from_cov(ACY_cov)
+    mu, std, C, start = add_risk_free_rate_to_params(ACY_mu, std, C, ACY_initial_price, risk_free_rate=risk_free_rate)
+    return xr.Dataset(
+        {
+            MU: xr.DataArray(mu, dims=(ASSET_DIMENSION,)),
+            SIGMA: xr.DataArray(std, dims=(ASSET_DIMENSION,)),
+            C_MAT: xr.DataArray(C, dims=(ASSET_DIMENSION, ASSET_DIMENSION)),
+            START_VALUE: xr.DataArray(start, dims=(ASSET_DIMENSION,)),
+            TIME_STEPS: xr.DataArray([terminal_time], dims=(TIME_STEP_DIMENSION,)),
+        }
     )
-
-
-def generate_terminal_values(n_paths: int, terminal_time: float, key: Array) -> xr.DataArray:
-    result = generate_asset_paths(n_paths=n_paths, time_steps=np.array([terminal_time]), key=key)
-    return result[{TIME_STEP_DIMENSION: 0}]

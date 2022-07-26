@@ -69,8 +69,14 @@ TIME_STEP_DIMENSION = "time_step"
 PATH_DIMENSION = "path"
 ASSET_DIMENSION = "asset"
 
+MU = "mu"
+SIGMA = "sigma"
+C_MAT = "C_matrix"
+START_VALUE = "start_value"
+TIME_STEPS = "time_steps"
 
-def xr_vector_geometric_brownian_motion(
+
+def xr_input_vector_geometric_brownian_motion(
     num_paths: int,
     start_value: ArrayLike,
     mu: ArrayLike,
@@ -80,6 +86,24 @@ def xr_vector_geometric_brownian_motion(
     key: Array,
 ) -> xr.DataArray:
     result = vector_geometric_brownian_motion(
-        num_paths=num_paths, start_value=start_value, mu=mu, sigma=sigma, C=C, time_steps=time_steps, key=key
+        num_paths=num_paths,
+        start_value=jnp.asarray(start_value),
+        mu=jnp.asarray(mu),
+        sigma=jnp.asarray(sigma),
+        C=jnp.asarray(C),
+        time_steps=jnp.asarray(time_steps),
+        key=key,
     )
     return xr.DataArray(result, dims=(PATH_DIMENSION, TIME_STEP_DIMENSION, ASSET_DIMENSION))
+
+
+def xr_vector_geometric_brownian_motion(num_paths: int, params: xr.Dataset, key: Array) -> xr.DataArray:
+    return xr_input_vector_geometric_brownian_motion(
+        num_paths=num_paths,
+        start_value=params[START_VALUE],
+        mu=params[MU],
+        sigma=params[SIGMA],
+        C=params[C_MAT],
+        time_steps=params[TIME_STEPS],
+        key=key,
+    )
