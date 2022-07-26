@@ -46,7 +46,7 @@ def autoflake(c):
 @task
 def autoflake_check(c):
     c.run(
-        f"autoflake --recursive --check --remove-all-unused-imports --remove-unused-variables {SRC_LOCATIONS} {TEST_LOCATIONS}"
+        f"autoflake --recursive --check --remove-all-unused-imports --remove-unused-variables {SRC_LOCATIONS} {TEST_LOCATIONS} >  /dev/null"
     )
 
 
