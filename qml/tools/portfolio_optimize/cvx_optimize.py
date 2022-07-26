@@ -8,6 +8,8 @@ import xarray as xr
 from cvxpy import OPTIMAL
 from numpy.typing import ArrayLike
 
+from qml.tools.monte_carlo.brownian_motion import START_VALUE
+
 
 @attr.s(frozen=True, auto_attribs=True)
 class CVaRProblem:
@@ -77,12 +79,12 @@ def cvar_minimize_non_smooth_problem(
     return CVaRProblem(prob, x=x, alpha=alpha), CVaRAuxData(V_delta_bar=V_delta_bar, price=V0)
 
 
-TRAINING_RETURN = "training_return"
+TRAINING_RETURN = "training_mean_return"
 TRAINING_CVAR = "training_cvar"
 HOLDINGS = "holdings"
 COST = "cost"
 
-INSTRUMENT_DIMENSION = "instrument_dimension"
+INSTRUMENT_DIMENSION = "instrument"
 FRONTIER_DIMENSION = "frontier_dimension"
 
 
@@ -157,4 +159,6 @@ def efficient_frontier_non_smooth(
     solutions = pool.map(
         _SolveHelper(problem=cprob, problem_data=data, return_parameter=return_parameter), required_returns
     )
-    return xr.concat(solutions, dim=FRONTIER_DIMENSION)
+    ds = xr.concat(solutions, dim=FRONTIER_DIMENSION)
+    ds[START_VALUE]= xr.DataArray(instrument_price, dims=INSTRUMENT_DIMENSION)
+    return ds
