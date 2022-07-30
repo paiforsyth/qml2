@@ -36,7 +36,7 @@ def cvar_minimize_non_smooth_problem(
     """
 
     Args:
-        confidence_level: Scalar. Confidence level for CVAR minimization.  Common choices are 0.95 and 0.99
+        confidence_level: Scalar. Confidence level for CVAR minimization.  Common choices are 0.05 and 0.05
         instrument_price: (num_instruments,) vector giving purchase price of every instrument
         instrument_payoff: (num_simulations, num_instruments) array giving payoff of each instrument in each simulation.
         minimum_holding:  (num_instruments,) array giving minimum holding of each instrument
@@ -56,7 +56,7 @@ def cvar_minimize_non_smooth_problem(
     num_instruments, num_simulations = instrument_payoff.shape
 
     # Define constants. use names from paper
-    beta = np.asarray(confidence_level)
+    beta = 1-np.asarray(confidence_level) # convention in paper in opposite our convention
     m = np.asarray(num_simulations)
     V0 = np.asarray(instrument_price)
     V_delta = np.asarray(instrument_payoff - V0.reshape(num_instruments, 1))

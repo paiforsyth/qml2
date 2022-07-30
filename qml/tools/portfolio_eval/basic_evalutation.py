@@ -14,22 +14,47 @@ UPPER_CI_SUFFIX = "_ci_upper"
 
 
 def value_at_risk(a: ArrayLike, axis: int, level: float, keepdims: bool = False) -> np.ndarray:
+    """
+    Args:
+        a: array of PnL values
+        axis: axis along which to compute VaR
+        level: confidence leve of the VaR to compute.  Common choices are 0.05 and 0.1
+        keepdims: whether to retain the reduced dimension with size 1 in the output array
+    Returns:
+        array of VaR values
+
+    Note on conventions:  There seems to be some ambiguity in the definitions used in the literature.  What
+    some people call VaR at level p, others call VaR at level (1-p).  Here we adopt the definitions of
+    Cont, Rama, Romain Deguest, and Giacomo Scandolo.
+    "Robustness and sensitivity analysis of risk measurement procedures." Quantitative finance 10.6 (2010): 593-606.
+    In which alpha var is defined as the negative of the alpha quantile of the distribution
+    """
     a2 = np.asarray(a)
-    result = np.quantile(a2, axis=axis, q=level, keepdims=keepdims)
+    result = -np.quantile(a2, axis=axis, q=level, keepdims=keepdims)
     return np.array(result)
 
 
 def conditional_value_at_risk(a: ArrayLike, axis: int, level: float) -> np.ndarray:
+    """
+
+        Args:
+            a: array of PnL values
+            axis: axis along which to compute CVaR
+            level: confidence leve of the CVaR to compute.  Common choices are 0.05 and 0.1
+            keepdims: whether to retain the reduced dimension with size 1 in the output array
+        Returns:
+            array of CVaR values
+    """
     var = value_at_risk(a, axis=axis, level=level, keepdims=True)
     a = np.asarray(a)
-    result: np.ndarray = var.squeeze(axis) - 1 / (level) * np.mean(np.maximum(var - a, 0.0), axis=axis)
+    result: np.ndarray = var.squeeze(axis) + 1 / level * np.mean(np.maximum(-a-var, 0.0), axis=axis)
     return result
 
 
 def standard_eval(
     sample_values: xr.DataArray,
     dim: str,
-    ci_confidence_level: float = 0.95,
+    ci_confidence_level: float = 0.05,
     var_levels: float | Sequence[float] = 0.05,
     include_ci: bool = True,
 ) -> xr.Dataset:
