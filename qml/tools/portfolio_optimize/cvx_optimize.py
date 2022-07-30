@@ -56,7 +56,7 @@ def cvar_minimize_non_smooth_problem(
     num_instruments, num_simulations = instrument_payoff.shape
 
     # Define constants. use names from paper
-    beta = 1-np.asarray(confidence_level) # convention in paper in opposite our convention
+    beta = np.asarray(confidence_level)
     m = np.asarray(num_simulations)
     V0 = np.asarray(instrument_price)
     V_delta = np.asarray(instrument_payoff - V0.reshape(num_instruments, 1))
@@ -69,7 +69,7 @@ def cvar_minimize_non_smooth_problem(
     # define variables
     x = cp.Variable(shape=num_instruments)
     alpha = cp.Variable()
-    obj = cp.Minimize(alpha + 1 / (m * (1 - beta)) * cp.sum(cp.pos(-V_delta.transpose() @ x - alpha)))
+    obj = cp.Minimize(alpha + 1 / (m * (beta)) * cp.sum(cp.pos(-V_delta.transpose() @ x - alpha)))
     budget_constraint = [V0 @ x <= b]
     return_constraint = [V_delta_bar @ x >= r]
     min_constraint = [l <= x] if l is not None else []

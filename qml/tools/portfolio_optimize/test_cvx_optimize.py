@@ -42,11 +42,11 @@ def test_alpha_optimal_value():
     cprob, _ = cvar_minimize_non_smooth_problem(
         confidence_level=jnp.array(0.1),
         instrument_price=jnp.array([1.0]),
-        instrument_payoff=0.1*jnp.array([list(range(11)),]).transpose() +1,
+        instrument_payoff=0.1 * jnp.array([list(range(11))]).transpose() + 1,
         required_return=jnp.array([0.0]),
         minimum_holding=np.array([1.0]),
     )
     prob = cprob.prob
     prob.solve(verbose=True, solver="CVXOPT")
     assert prob.status == OPTIMAL
-    assert -cprob.alpha.value<0.2
+    assert -cprob.alpha.value < 0.2

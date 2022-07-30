@@ -37,17 +37,17 @@ def value_at_risk(a: ArrayLike, axis: int, level: float, keepdims: bool = False)
 def conditional_value_at_risk(a: ArrayLike, axis: int, level: float) -> np.ndarray:
     """
 
-        Args:
-            a: array of PnL values
-            axis: axis along which to compute CVaR
-            level: confidence leve of the CVaR to compute.  Common choices are 0.05 and 0.1
-            keepdims: whether to retain the reduced dimension with size 1 in the output array
-        Returns:
-            array of CVaR values
+    Args:
+        a: array of PnL values
+        axis: axis along which to compute CVaR
+        level: confidence leve of the CVaR to compute.  Common choices are 0.05 and 0.1
+        keepdims: whether to retain the reduced dimension with size 1 in the output array
+    Returns:
+        array of CVaR values
     """
     var = value_at_risk(a, axis=axis, level=level, keepdims=True)
     a = np.asarray(a)
-    result: np.ndarray = var.squeeze(axis) + 1 / level * np.mean(np.maximum(-a-var, 0.0), axis=axis)
+    result: np.ndarray = var.squeeze(axis) + 1 / level * np.mean(np.maximum(-a - var, 0.0), axis=axis)
     return result
 
 
