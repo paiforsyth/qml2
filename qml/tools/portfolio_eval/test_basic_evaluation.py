@@ -17,7 +17,7 @@ from qml.tools.portfolio_eval.basic_evalutation import (
 
 def test_value_at_risk():
     a = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-    assert value_at_risk(a, level=0.3, axis=0) == pytest.approx(0.3)
+    assert value_at_risk(a, level=0.3, axis=0) == pytest.approx(-0.3)
 
 
 @given(level=st.floats(min_value=0.4, max_value=0.6), std=st.floats(min_value=1.0, max_value=3.0))
@@ -32,9 +32,9 @@ def test_var_cvar_normal(level: float, std: float):
     var = value_at_risk(data, axis=0, level=level)
     cvar = conditional_value_at_risk(data, axis=0, level=level)
     norm = scipy.stats.norm()
-    expected_var = scipy.stats.norm(scale=std).ppf(level)
-    beta = expected_var / std
-    expected_cvar = -std * norm.pdf(beta) / (norm.cdf(beta))
+    expected_var = -scipy.stats.norm(scale=std).ppf(level)
+    beta = -expected_var / std
+    expected_cvar = std * norm.pdf(beta) / (norm.cdf(beta))
     assert var == pytest.approx(expected_var, rel=0.1, abs=0.1)
     assert cvar == pytest.approx(expected_cvar, rel=0.1, abs=0.1)
 

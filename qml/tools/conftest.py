@@ -20,10 +20,11 @@ def example_efficient_frontier(example_required_return: np.ndarray) -> xr.Datase
         cov=np.array([[1.0, 0.0], [0.0, 10.0]]), mean=np.array([1.0, 2.0]), seed=42
     )
     frontier = efficient_frontier_non_smooth(
-        confidence_level=np.array(0.95),
+        confidence_level=np.array(0.05),
         instrument_price=np.array([1.0, 1.0]),
         instrument_payoff=normal.rvs(size=samples),
         required_returns=example_required_return,
+        processess=1,
     )
     frontier = add_risk_return_percentage_to_ds(frontier)
     return frontier
